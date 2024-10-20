@@ -1,0 +1,39 @@
+# This is a basic workflow to help you get started with Actions
+
+# Matheus Banhos
+# Github: https://github.com/matheusbanhos
+
+name: Run Horusec (SAST), Generate Script and Save Artifact
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-scripts:
+    runs-on: [ ubuntu-latest ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: SAST - Horusec Run 🐞
+        run: |
+          curl -sL https://raw.githubusercontent.com/matheusbanhos/appsec-tools/main/Sast/Horusec/horusec_docker_linux.sh| bash
+      - name: SAST - Horusec Report Generation 📊
+        run: |
+          cd reports
+          curl -sL https://raw.githubusercontent.com/matheusbanhos/appsec-tools/main/Sast/Horusec/Horusec_Report/horusec_json2md.py -o horusec_json2md.py 
+          python3 horusec_json2md.py horusec_report.json horusec_report.md
+      - name: SAST - Horusec Upload Report Artifact 💾
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAST - Horusec Scan
+          path: reports/horusec_report.md
+
+      - name: SAST - Horusec Results In Summary 💁🏽
+        run: cat reports/horusec_report.md >> $GITHUB_STEP_SUMMARY
